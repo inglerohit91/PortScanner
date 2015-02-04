@@ -1,0 +1,131 @@
+Project 4: Port Scanner (CSCIP-538)
+=========================================================
+	Name			User name
+	---- 			--------
+1)	Rahul Sinha		rahsinha
+2)	Rohit Ingle		rpingle
+
+
+Code Description
+===========================================================================
+We have implemented this project in C language. In this project, we have created
+a basic port scanner with IPv4 support. We probe remote hosts to check the status
+of the ports and have implemented various scanning techniques which include SYN,
+ACK, NULL, FIN, XMAS and UDP.
+
+In our project tarball (project4.tar), you will find the following files:
+1. README
+2. Makefile
+3. portScanner.c
+4. Supporting files:
+	a. portScanner.h
+	b. portScanner_functions.c	
+	
+	portScanner.c - Contains the main function.
+						 
+	portScanner.h - Contains  definitions and structures required for this
+					project. 
+	portScanner_functions.c - Contains the all the required helper functions for this project.
+							  We have created an array of service names for the port numbers 
+							  1-1024 here.
+
+	iplist.txt	-	contains some sample IPs.
+Functions
+==========
+
+1) main() 	 		   : This is the main function.
+ 
+2) csum_new() 	   	   : This function has been used to for implementing our checksum logic.
+						 We are passing 2 arguments to the function - a (short) 2 byte pointer
+						 and the number of bytes over which the checksum is to be applied.
+						 Algorithm:
+						 a. Group the data over on which checksum is to be performed into bytes of 2.
+						 b. Add all the terms.
+						 c. We need to store the result in 16-bits. So if we obtain any carry, 
+						    add it to the result.
+						 d. Perform a compliment of the final result and send that as checksum.
+
+3) my_function()	   : This function contains the logic for multi-threading and sending and
+						 receiving the packets. 
+                         Based on the type of scan, we have divided it into 3 parts:
+						 a. TCP Scan (includes all TCP scans: SYN, ACK, NULL, XMAS, FIN)
+						 b. UDP Scan
+						 c. UDP DNS Scan - Here we construct a payload and then send.
+						 For each part, we construct a TCP/UDP packet and based on the response
+						 we make suitable conclusions.
+						 
+						 In case there is no response from remote host we try 3 retransmits, after 
+						 which we are creating an ICMP socket and sending the same packet through ICMP.
+						 We are using 'select' to wait for an ICMP response for fixed seconds, after which we
+						 makie appropriate conclusions about the port status.
+						 
+4) print_help() 	   : To print out the help section.
+
+5) parse_args()        : To parse the command line arguments.
+
+6) read_ip_from_file() : This function is used to fetch a list of ip addresses from the file 
+						 mentioned in the command line argument.
+						 
+7) parse_ports() 	   : Used to parse the ports mentioned in command line arguments such as:
+						 a. port1, port2, port3
+						 b. port1-port10
+8) parse_prefix()      : This is used to parse the ip prefixes mentioned in the command line arguments.
+
+9) get_nic_addr()      : In order to get the address of the source machine.
+
+10) changeHostFormat() : For performing UDP scan on port 53(DNS), we are sending a protocol specific	
+						 payload. This payload contains the hostname "www.google.com". This function 
+						 reformats the name to "3www6google3com" so that it is in an acceptable
+						 format.
+11) ServiceVersion()   : This function gets the version of services running on the dagwood vm.
+							for port 22,24,43,80,110,143
+12) populateConclusionTable() : This function is called to analyse the individual result of all the jobs in 
+						the job queue and infer a conclusion for all the possible sets 
+						of [IP address, port, scan type] and display it on the standard output.
+
+Tasks Accomplished
+====================================================================================
+1) Successfully implemented the various types of TCP/UDP scans and the program is able to
+conclude the port status.
+2) Implementation of multi-threading to speed up the program execution.
+3) Added functionality to read the IP addresses from command line input as well as the file. Also 
+included the logic for calculating IP prefix and port range as mentioned.
+4) Raw sockets have been used for sending TCP, UDP and ICMP packets.
+
+Code Compilation and Execution
+======================================================================================
+Please copy all the files in the tarball to a directory on the linux machine.
+
+Execute the Makefile: Type 'make' and hit enter.
+
+The Makefile has been written to compile all the C files and Header files given
+in the folder and give an output executable named :  portScanner
+
+We have tested the code on blondie.soic.indiana.edu and it works fine.
+
+Options that can be passed in the command line are as follows: 
+ 
+--help        		   : Gives a short description along with the usage.
+--ports <ports to scan>: Specify the list of ports to be scanned.
+--ip <IP addresses>	   : Specify the list of IP addresses to scan.
+--prefix <IP prefix>   : Specify the IP prefix to scan.
+--file <file name>     : Specify the file name that contains the IP address to scan.
+--speedup <Threads>    : Specify the number of parallel threads to use.
+--scan <scan type/s>   : User can include one or more scans using this command.	
+	
+Interpreting the Output
+========================================================================================
+We are displaying the program output on stdout. The output gives a succinct summary of the
+scanned ports for each IP address. Additionally, each port in the range [1-1024] is accompanied 
+with the service name associated with it.
+
+We are grouping the output according to the ip address of scanned host. 
+
+For each port, the result includes the status of the port obtained by the type of scan used.
+
+We have also included a final entry 'Conclusion' which concludes the final status of the 
+port based on the port states from various scan types.
+
+==========================================================================================
+					EOF
+==========================================================================================
